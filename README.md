@@ -40,3 +40,24 @@ npm run dev
 ```sh
 npm run build
 ```
+
+## AI Chat 管理后台
+
+前端默认通过 `/api` 请求后端，开发服务器将其代理到 `http://localhost:8080`。
+
+```sh
+npm install
+npm run dev
+```
+
+可以复制 `.env.example` 为本地环境配置，并通过 `VITE_API_BASE_URL` 和 `VITE_BACKEND_URL` 覆盖 API 基础地址和开发代理目标。不要在环境文件中提交 Token、API Key 或其他凭据。
+
+### Automated verification
+
+```sh
+npm run test
+npm run type-check
+npm run build
+```
+
+项目按 Node 20.20.2 验证。
