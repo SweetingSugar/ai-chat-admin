@@ -1,0 +1,73 @@
+<h2>选择管理后台的视觉方向</h2>
+<p class="subtitle">三种方案都使用 Element Plus；区别主要是信息密度、氛围和首页层级。点击你偏好的方案。</p>
+
+<div class="cards" style="grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch;">
+  <div class="card" data-choice="calm-ops" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0; overflow:hidden; background:#f5f7fb; min-height:330px;">
+      <div style="display:flex; min-height:330px; color:#172033; font:12px/1.4 Inter, sans-serif;">
+        <aside style="width:78px; padding:14px 10px; background:#17213b; color:#c6d0e5;">
+          <div style="font-size:10px; font-weight:800; color:white; margin-bottom:22px;">NEXUS AI</div>
+          <div style="padding:7px; border-radius:6px; background:#5067e8; color:white; margin-bottom:6px;">概览</div>
+          <div style="padding:7px;">用户</div><div style="padding:7px;">权限</div><div style="padding:7px;">模型</div><div style="padding:7px;">统计</div>
+        </aside>
+        <main style="flex:1; padding:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;"><b style="font-size:14px;">运营概览</b><span style="color:#7b8498;">近 30 天 ▾</span></div>
+          <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+            <div style="background:white; padding:10px; border-radius:8px; box-shadow:0 2px 10px #18213b0c;"><span style="color:#7b8498;">总用户</span><strong style="display:block;font-size:18px;margin-top:5px;">12,840</strong><small style="color:#1d9e75;">↑ 8.4%</small></div>
+            <div style="background:white; padding:10px; border-radius:8px;"><span style="color:#7b8498;">Token 用量</span><strong style="display:block;font-size:18px;margin-top:5px;">28.6M</strong><small style="color:#1d9e75;">↑ 12.1%</small></div>
+            <div style="background:white; padding:10px; border-radius:8px;"><span style="color:#7b8498;">AI 调用</span><strong style="display:block;font-size:18px;margin-top:5px;">83,421</strong></div>
+            <div style="background:white; padding:10px; border-radius:8px;"><span style="color:#7b8498;">成功率</span><strong style="display:block;font-size:18px;margin-top:5px;">98.7%</strong></div>
+          </div>
+          <div style="margin-top:9px;background:white;border-radius:8px;padding:10px;height:95px;"><div style="color:#566078;margin-bottom:8px;">使用趋势</div><svg viewBox="0 0 200 55" width="100%" height="58"><path d="M0 43 C18 38,22 42,39 31 S68 35,84 23 S110 28,127 16 S158 22,200 7" fill="none" stroke="#5067e8" stroke-width="3"/><path d="M0 43 C18 38,22 42,39 31 S68 35,84 23 S110 28,127 16 S158 22,200 7 L200 55 L0 55Z" fill="#5067e81a"/></svg></div>
+        </main>
+      </div>
+    </div>
+    <div class="card-body"><h3>A · 清爽运营台</h3><p>浅色内容区配深色侧栏，层级明确、专业克制，适合日常管理与统计阅读。</p></div>
+  </div>
+
+  <div class="card" data-choice="dark-ai" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0; overflow:hidden; background:#0c1020; min-height:330px;">
+      <div style="display:flex; min-height:330px; color:#e9efff; font:12px/1.4 Inter, sans-serif;">
+        <aside style="width:78px; padding:14px 10px; border-right:1px solid #253052; background:#11162a;">
+          <div style="font-size:10px;font-weight:800;color:#8ea2ff;margin-bottom:22px;">ORBIT AI</div>
+          <div style="padding:7px;border-radius:6px;background:linear-gradient(90deg,#6366f1,#8b5cf6);margin-bottom:6px;">概览</div>
+          <div style="padding:7px;color:#8791ae;">用户</div><div style="padding:7px;color:#8791ae;">权限</div><div style="padding:7px;color:#8791ae;">模型</div><div style="padding:7px;color:#8791ae;">统计</div>
+        </aside>
+        <main style="flex:1;padding:14px;background:radial-gradient(circle at 70% 0%,#2f225955,transparent 45%);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><b style="font-size:14px;">AI Control Center</b><span style="color:#8d96b3;">Last 30 days</span></div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+            <div style="padding:10px;border:1px solid #2b3658;border-radius:8px;background:#151b31aa;"><span style="color:#8d96b3;">Active Users</span><strong style="display:block;font-size:18px;margin-top:5px;">8,926</strong><small style="color:#5eead4;">+8.4%</small></div>
+            <div style="padding:10px;border:1px solid #2b3658;border-radius:8px;background:#151b31aa;"><span style="color:#8d96b3;">Token Volume</span><strong style="display:block;font-size:18px;margin-top:5px;">28.6M</strong><small style="color:#a78bfa;">+12.1%</small></div>
+            <div style="padding:10px;border:1px solid #2b3658;border-radius:8px;background:#151b31aa;"><span style="color:#8d96b3;">Requests</span><strong style="display:block;font-size:18px;margin-top:5px;">83.4K</strong></div>
+            <div style="padding:10px;border:1px solid #2b3658;border-radius:8px;background:#151b31aa;"><span style="color:#8d96b3;">Availability</span><strong style="display:block;font-size:18px;margin-top:5px;">98.7%</strong></div>
+          </div>
+          <div style="margin-top:9px;border:1px solid #2b3658;border-radius:8px;padding:10px;height:95px;background:#151b31aa;"><div style="color:#9aa5c4;margin-bottom:8px;">System activity</div><svg viewBox="0 0 200 55" width="100%" height="58"><path d="M0 45 L24 39 L46 43 L67 27 L88 32 L112 17 L137 24 L159 11 L181 17 L200 5" fill="none" stroke="#8b5cf6" stroke-width="3"/><path d="M0 45 L24 39 L46 43 L67 27 L88 32 L112 17 L137 24 L159 11 L181 17 L200 5" fill="none" stroke="#22d3ee" stroke-width="1" transform="translate(0 5)" opacity=".5"/></svg></div>
+        </main>
+      </div>
+    </div>
+    <div class="card-body"><h3>B · 深色 AI 控制台</h3><p>深色界面与渐变强调更有 AI 产品感，但长时间查看复杂表格时阅读负担略高。</p></div>
+  </div>
+
+  <div class="card" data-choice="dense-console" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;overflow:hidden;background:#f3f3f0;min-height:330px;">
+      <div style="min-height:330px;color:#20231f;font:11px/1.35 Arial,sans-serif;">
+        <header style="height:36px;background:#fff;border-bottom:1px solid #dadbd5;display:flex;align-items:center;justify-content:space-between;padding:0 12px;"><b>AI PLATFORM / ADMIN</b><span>Search　 Help　 ice ▾</span></header>
+        <div style="display:flex;min-height:294px;">
+          <aside style="width:74px;padding:10px 8px;background:#e7e8e2;border-right:1px solid #d1d2cc;"><b style="display:block;padding:6px;background:#d0f05a;border-radius:3px;margin-bottom:4px;">Dashboard</b><span style="display:block;padding:6px;">Users</span><span style="display:block;padding:6px;">Access</span><span style="display:block;padding:6px;">Models</span><span style="display:block;padding:6px;">Usage</span></aside>
+          <main style="flex:1;padding:10px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><b style="font-size:14px;">Dashboard</b><span style="border:1px solid #bfc1ba;padding:3px 6px;background:white;">Oct 01 — Oct 24</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d1d2cc;background:#fff;">
+              <div style="padding:8px;border-right:1px solid #ddd;"><small>USERS</small><b style="display:block;font-size:16px">12.8K</b></div><div style="padding:8px;border-right:1px solid #ddd;"><small>SESSIONS</small><b style="display:block;font-size:16px">31.2K</b></div><div style="padding:8px;border-right:1px solid #ddd;"><small>CALLS</small><b style="display:block;font-size:16px">83.4K</b></div><div style="padding:8px;"><small>TOKENS</small><b style="display:block;font-size:16px">28.6M</b></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1.25fr .75fr;gap:8px;margin-top:8px;">
+              <div style="background:white;border:1px solid #d1d2cc;padding:8px;height:102px;"><b>Daily usage</b><svg viewBox="0 0 200 60" width="100%" height="72"><polyline points="0,50 22,39 44,43 66,25 88,34 110,20 132,27 154,11 176,18 200,7" fill="none" stroke="#1f5b45" stroke-width="2"/></svg></div>
+              <div style="background:white;border:1px solid #d1d2cc;padding:8px;height:102px;"><b>Model share</b><div style="margin-top:9px;"><span>DeepSeek</span><span style="float:right">46%</span><div style="height:5px;background:#ddd;margin:3px 0 7px"><i style="display:block;width:46%;height:5px;background:#1f5b45"></i></div><span>Qwen</span><span style="float:right">34%</span><div style="height:5px;background:#ddd;margin-top:3px"><i style="display:block;width:34%;height:5px;background:#d0f05a"></i></div></div></div>
+            </div>
+            <div style="margin-top:8px;background:white;border:1px solid #d1d2cc;padding:7px;"><b>Recent health</b><span style="float:right;color:#1f5b45">● All systems operational</span></div>
+          </main>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C · 高密度数据台</h3><p>弱装饰、强网格，单屏承载更多信息，适合重度运营，但整体更偏工具化。</p></div>
+  </div>
+</div>
