@@ -1,4 +1,3 @@
-import { defineComponent } from 'vue'
 import {
   createRouter,
   createWebHistory,
@@ -6,22 +5,31 @@ import {
   type RouteRecordRaw,
   type RouterHistory,
 } from 'vue-router'
+import AdminLayout from '@/layouts/AdminLayout.vue'
+import LoginView from '@/views/LoginView.vue'
+import DashboardView from '@/views/DashboardView.vue'
+import ForbiddenView from '@/views/ForbiddenView.vue'
 import { useAuthStore } from '@/stores/auth'
 
-const RoutePlaceholder = defineComponent({
-  name: 'RoutePlaceholder',
-  template: '<div />',
-})
-
 export const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: '/dashboard' },
-  { path: '/login', component: RoutePlaceholder, meta: { guestOnly: true } },
+  { path: '/login', component: LoginView, meta: { guestOnly: true, title: '登录' } },
   {
-    path: '/dashboard',
-    component: RoutePlaceholder,
-    meta: { requiresAuth: true, permission: 'admin:dashboard:read' },
+    path: '/',
+    component: AdminLayout,
+    children: [
+      { path: '', redirect: '/dashboard' },
+      {
+        path: 'dashboard',
+        component: DashboardView,
+        meta: { requiresAuth: true, permission: 'admin:dashboard:read', title: '运营概览' },
+      },
+      {
+        path: 'forbidden',
+        component: ForbiddenView,
+        meta: { requiresAuth: true, title: '无权限' },
+      },
+    ],
   },
-  { path: '/forbidden', component: RoutePlaceholder, meta: { requiresAuth: true } },
 ]
 
 export function getFirstAccessiblePath(permissionCodes: string[]): '/dashboard' | '/forbidden' {
