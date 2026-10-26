@@ -143,11 +143,13 @@ function isActive(path: string): boolean {
 
 .sidebar-nav {
   display: grid;
+  align-content: start;
   gap: 15px;
 }
 
 .nav-group {
   display: grid;
+  align-content: start;
   gap: 3px;
 }
 
@@ -164,6 +166,7 @@ function isActive(path: string): boolean {
   display: flex;
   align-items: center;
   gap: 9px;
+  height: 36px;
   min-height: 36px;
   padding: 0 9px;
   border-radius: var(--radius-sm);
