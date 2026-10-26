@@ -206,7 +206,7 @@ onMounted(() => {
           <el-table-column label="类型" width="90"><template #default="{ row }"><el-tag size="small">{{ typeLabel(row.permissionType) }}</el-tag></template></el-table-column>
           <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :status="row.status" /></template></el-table-column>
           <el-table-column prop="sort" label="排序" width="80" />
-          <el-table-column label="操作" fixed="right" width="150">
+          <el-table-column label="操作" fixed="right" width="180">
             <template #default="{ row }">
               <el-button v-if="canUpdate" :data-test="`permission-edit-${row.id}`" text type="primary" @click="openEdit(row)">编辑</el-button>
               <el-button v-if="canDelete" :data-test="`permission-delete-${row.id}`" text type="danger" @click="deletePermission(row)">删除</el-button>

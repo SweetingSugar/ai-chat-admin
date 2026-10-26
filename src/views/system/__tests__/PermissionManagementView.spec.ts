@@ -81,4 +81,12 @@ describe('PermissionManagementView', () => {
     await flushPromises()
     expect(permissionsApi.deletePermission).not.toHaveBeenCalled()
   })
+
+  it('keeps edit and delete actions in a wide operation column', async () => {
+    const wrapper = mount(PermissionManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    const actionColumns = wrapper.findAll('col').filter((column) => column.attributes('width') === '180')
+    expect(actionColumns).toHaveLength(2)
+  })
 })

@@ -259,7 +259,7 @@ onMounted(() => {
           <el-table-column label="参数" width="145"><template #default="{ row }">T {{ row.temperature ?? '—' }} / P {{ row.topP ?? '—' }}</template></el-table-column>
           <el-table-column label="能力" width="150"><template #default="{ row }"><el-tag v-if="row.supportStream" size="small" type="success">流式</el-tag><el-tag v-if="row.defaultModel" size="small" type="warning">默认</el-tag></template></el-table-column>
           <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :status="row.status" /></template></el-table-column>
-          <el-table-column label="操作" fixed="right" width="150">
+          <el-table-column label="操作" fixed="right" width="180">
             <template #default="{ row }">
               <el-button v-if="canUpdate" :data-test="`model-edit-${row.id}`" text type="primary" @click="openEdit(row)">编辑</el-button>
               <el-button v-if="canDelete" :data-test="`model-delete-${row.id}`" text type="danger" @click="deleteModel(row)">删除</el-button>
