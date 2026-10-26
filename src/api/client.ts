@@ -15,6 +15,9 @@ export interface ApiClient {
   defaults: AxiosInstance['defaults']
   get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
   post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T>
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T>
 }
 
 export class ApiError extends Error {
@@ -93,6 +96,18 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     },
     post: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
       const response = await client.post<ApiResponse<T>>(url, data, config)
+      return response.data.data
+    },
+    put: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
+      const response = await client.put<ApiResponse<T>>(url, data, config)
+      return response.data.data
+    },
+    patch: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {
+      const response = await client.patch<ApiResponse<T>>(url, data, config)
+      return response.data.data
+    },
+    delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
+      const response = await client.delete<ApiResponse<T>>(url, config)
       return response.data.data
     },
   }

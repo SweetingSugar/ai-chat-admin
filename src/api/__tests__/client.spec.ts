@@ -38,6 +38,29 @@ it('raises an ApiError for a business failure', async () => {
   })
 })
 
+it('supports PUT, PATCH, and DELETE responses', async () => {
+  const client = createApiClient({ readToken: () => null, onUnauthorized: vi.fn() })
+  const requests: Array<{ method?: string; data?: unknown }> = []
+  client.defaults.adapter = async (config) => {
+    requests.push({ method: config.method, data: config.data })
+    return {
+      data: { success: true, code: 'SUCCESS', message: 'OK', data: { ok: true } },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config,
+    }
+  }
+
+  await expect(client.put('/system/roles/1', { roleName: '运营' })).resolves.toEqual({ ok: true })
+  await expect(client.patch('/system/users/1/status', { status: 0 })).resolves.toEqual({ ok: true })
+  await expect(client.delete('/system/roles/1')).resolves.toEqual({ ok: true })
+
+  expect(requests.map(({ method }) => method)).toEqual(['put', 'patch', 'delete'])
+  expect(JSON.parse(String(requests[0]?.data))).toEqual({ roleName: '运营' })
+  expect(JSON.parse(String(requests[1]?.data))).toEqual({ status: 0 })
+})
+
 it('clears authentication through the callback on 401', async () => {
   const onUnauthorized = vi.fn()
   const client = createApiClient({ readToken: () => null, onUnauthorized })
