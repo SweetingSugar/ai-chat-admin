@@ -76,17 +76,22 @@ describe('ModelManagementView', () => {
     expect(wrapper.text()).toContain('DeepSeek')
   })
 
-  it('converts model form booleans to backend numeric flags', async () => {
+  it('submits CHAT as the default model type when creating a model', async () => {
     const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
     await wrapper.find('[data-test="model-create"]').trigger('click')
     await flushPromises()
     await wrapper.find('[data-test="model-code"]').setValue('deepseek-chat')
     await wrapper.find('[data-test="model-name"]').setValue('DeepSeek Chat')
-    await wrapper.find('[data-test="model-type"]').setValue('chat')
     await wrapper.find('[data-test="model-submit"]').trigger('click')
     await flushPromises()
-    expect(aiApi.createModel).toHaveBeenCalledWith(expect.objectContaining({ providerId: 1, supportStream: 1, isDefault: 0, status: 1 }))
+    expect(aiApi.createModel).toHaveBeenCalledWith(expect.objectContaining({
+      providerId: 1,
+      modelType: 'CHAT',
+      supportStream: 1,
+      isDefault: 0,
+      status: 1,
+    }))
   })
 
   it('keeps the model list when provider access is denied', async () => {
