@@ -1,6 +1,6 @@
 import type { BinaryStatus } from './management'
 
-export type ProviderType = 'OPENAI' | 'DEEPSEEK' | 'QWEN'
+export type ProviderType = 'OPENAI' | 'DEEPSEEK' | 'QWEN' | 'OLLAMA'
 
 export interface ProviderRecord {
   id: number

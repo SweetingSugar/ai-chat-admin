@@ -114,8 +114,8 @@ function openEdit(provider: ProviderRecord): void {
 }
 
 async function submitProvider(): Promise<void> {
-  if (formId.value === null && !form.apiKey.trim()) {
-    ElMessage.warning('新增供应商时必须填写 API Key')
+  if (formId.value === null && form.providerType !== 'OLLAMA' && !form.apiKey.trim()) {
+    ElMessage.warning('非 Ollama 供应商新增时必须填写 API Key')
     return
   }
   formSubmitting.value = true
@@ -185,6 +185,7 @@ onMounted(() => {
           <el-option label="OpenAI" value="OPENAI" />
           <el-option label="DeepSeek" value="DEEPSEEK" />
           <el-option label="通义千问" value="QWEN" />
+          <el-option label="Ollama" value="OLLAMA" />
         </el-select>
         <el-select v-model="statusFilter" aria-label="供应商状态筛选" style="width: 130px">
           <el-option label="全部状态" value="all" />
@@ -225,11 +226,12 @@ onMounted(() => {
             <el-option label="OpenAI" value="OPENAI" />
             <el-option label="DeepSeek" value="DEEPSEEK" />
             <el-option label="通义千问" value="QWEN" />
+            <el-option label="Ollama" value="OLLAMA" />
           </el-select>
         </el-form-item>
         <el-form-item label="Base URL"><el-input v-model="form.baseUrl" data-test="provider-base-url" maxlength="500" /></el-form-item>
         <el-form-item label="API Key"><el-input v-model="form.apiKey" data-test="provider-api-key" type="password" show-password autocomplete="new-password" /></el-form-item>
-        <p class="field-hint">编辑时留空将保留当前 API Key，页面不会显示已有密钥。</p>
+        <p class="field-hint">非 Ollama 供应商新增时必须填写 API Key；编辑时留空将保留当前 API Key，页面不会显示已有密钥。</p>
         <el-form-item label="连接超时"><el-input-number v-model="form.connectTimeout" :min="1" :max="120" /></el-form-item>
         <el-form-item label="读取超时"><el-input-number v-model="form.readTimeout" :min="1" :max="600" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" /></el-form-item>

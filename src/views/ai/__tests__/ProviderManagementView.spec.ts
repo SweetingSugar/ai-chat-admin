@@ -47,6 +47,73 @@ afterEach(() => {
 })
 
 describe('ProviderManagementView', () => {
+  it('shows Ollama in the provider type filter', async () => {
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[aria-label="供应商类型筛选"]').trigger('click')
+    const selectInput = wrapper.find('[aria-label="供应商类型筛选"]')
+    const dropdownId = selectInput.attributes('aria-controls')
+    expect(document.getElementById(dropdownId)?.textContent).toContain('Ollama')
+    await wrapper.find('[aria-label="供应商类型筛选"]').trigger('click')
+    wrapper.unmount()
+  })
+
+  it('shows Ollama in the provider form type selector', async () => {
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="provider-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="provider-type"]').trigger('click')
+    const selectInput = wrapper.find('[data-test="provider-type"] input[role="combobox"]')
+    const dropdownId = selectInput.attributes('aria-controls')
+    expect(document.getElementById(dropdownId)?.textContent).toContain('Ollama')
+    await wrapper.find('[data-test="provider-type"]').trigger('click')
+    wrapper.unmount()
+  })
+
+  it('allows creating an Ollama provider without an API key', async () => {
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="provider-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="provider-code"]').setValue('ollama')
+    await wrapper.find('[data-test="provider-name"]').setValue('Ollama')
+    await wrapper.find('[data-test="provider-base-url"]').setValue('http://localhost:11434')
+    await wrapper.find('[data-test="provider-type"]').trigger('click')
+    const selectInput = wrapper.find('[data-test="provider-type"] input[role="combobox"]')
+    const dropdownId = selectInput.attributes('aria-controls')
+    const option = Array.from(document.getElementById(dropdownId)?.querySelectorAll<HTMLElement>('.el-select-dropdown__item') ?? [])
+      .find((item) => item.textContent?.trim() === 'Ollama')
+    expect(option).toBeDefined()
+    option?.click()
+    await flushPromises()
+    await wrapper.find('[data-test="provider-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.createProvider).toHaveBeenCalledWith(expect.objectContaining({
+      providerCode: 'ollama',
+      providerType: 'OLLAMA',
+      baseUrl: 'http://localhost:11434',
+      apiKey: '',
+    }))
+    wrapper.unmount()
+  })
+
+  it('rejects a blank API key for a non-Ollama provider', async () => {
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="provider-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="provider-code"]').setValue('deepseek')
+    await wrapper.find('[data-test="provider-name"]').setValue('DeepSeek')
+    await wrapper.find('[data-test="provider-base-url"]').setValue('https://api.deepseek.com')
+    await wrapper.find('[data-test="provider-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.createProvider).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
   it('loads provider data without rendering the API key', async () => {
     const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
