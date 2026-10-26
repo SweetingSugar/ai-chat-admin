@@ -72,3 +72,19 @@ it('resolves the root route to the first accessible page', async () => {
 
   expect(router.currentRoute.value.fullPath).toBe('/dashboard')
 })
+
+it('allows a user with only user-read permission to enter user management', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['system:user:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/system/users')
+
+  expect(router.currentRoute.value.fullPath).toBe('/system/users')
+})
+
+it('uses the first accessible management route when dashboard is unavailable', () => {
+  expect(getFirstAccessiblePath(['system:user:read'])).toBe('/system/users')
+})

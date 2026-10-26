@@ -12,8 +12,21 @@ const navigationGroups = [
     label: '工作台',
     items: [{ label: '运营概览', path: '/dashboard', permission: 'admin:dashboard:read' }],
   },
-  { label: '系统管理', items: [] },
-  { label: 'AI 配置', items: [] },
+  {
+    label: '系统管理',
+    items: [
+      { label: '用户管理', path: '/system/users', permission: 'system:user:read' },
+      { label: '角色管理', path: '/system/roles', permission: 'system:role:read' },
+      { label: '权限管理', path: '/system/permissions', permission: 'system:permission:read' },
+    ],
+  },
+  {
+    label: 'AI 配置',
+    items: [
+      { label: '供应商管理', path: '/ai/providers', permission: 'ai:provider:read' },
+      { label: '模型管理', path: '/ai/models', permission: 'ai:model:read' },
+    ],
+  },
   { label: '数据分析', items: [] },
 ]
 

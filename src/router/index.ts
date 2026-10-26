@@ -9,6 +9,12 @@ import AdminLayout from '@/layouts/AdminLayout.vue'
 import LoginView from '@/views/LoginView.vue'
 import DashboardView from '@/views/DashboardView.vue'
 import ForbiddenView from '@/views/ForbiddenView.vue'
+import UserManagementView from '@/views/system/UserManagementView.vue'
+import RoleManagementView from '@/views/system/RoleManagementView.vue'
+import PermissionManagementView from '@/views/system/PermissionManagementView.vue'
+import AiConfigLayout from '@/layouts/AiConfigLayout.vue'
+import ProviderManagementView from '@/views/ai/ProviderManagementView.vue'
+import ModelManagementView from '@/views/ai/ModelManagementView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 export const routes: RouteRecordRaw[] = [
@@ -24,6 +30,39 @@ export const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'admin:dashboard:read', title: '运营概览' },
       },
       {
+        path: 'system/users',
+        component: UserManagementView,
+        meta: { requiresAuth: true, permission: 'system:user:read', title: '用户管理' },
+      },
+      {
+        path: 'system/roles',
+        component: RoleManagementView,
+        meta: { requiresAuth: true, permission: 'system:role:read', title: '角色管理' },
+      },
+      {
+        path: 'system/permissions',
+        component: PermissionManagementView,
+        meta: { requiresAuth: true, permission: 'system:permission:read', title: '权限管理' },
+      },
+      {
+        path: 'ai',
+        component: AiConfigLayout,
+        meta: { requiresAuth: true, title: 'AI 配置' },
+        children: [
+          { path: '', redirect: 'providers' },
+          {
+            path: 'providers',
+            component: ProviderManagementView,
+            meta: { requiresAuth: true, permission: 'ai:provider:read', title: '供应商管理' },
+          },
+          {
+            path: 'models',
+            component: ModelManagementView,
+            meta: { requiresAuth: true, permission: 'ai:model:read', title: '模型管理' },
+          },
+        ],
+      },
+      {
         path: 'forbidden',
         component: ForbiddenView,
         meta: { requiresAuth: true, title: '无权限' },
@@ -32,8 +71,17 @@ export const routes: RouteRecordRaw[] = [
   },
 ]
 
-export function getFirstAccessiblePath(permissionCodes: string[]): '/dashboard' | '/forbidden' {
-  return permissionCodes.includes('admin:dashboard:read') ? '/dashboard' : '/forbidden'
+const accessibleEntries = [
+  ['/dashboard', 'admin:dashboard:read'],
+  ['/system/users', 'system:user:read'],
+  ['/system/roles', 'system:role:read'],
+  ['/system/permissions', 'system:permission:read'],
+  ['/ai/providers', 'ai:provider:read'],
+  ['/ai/models', 'ai:model:read'],
+] as const
+
+export function getFirstAccessiblePath(permissionCodes: string[]): string {
+  return accessibleEntries.find(([, permission]) => permissionCodes.includes(permission))?.[0] ?? '/forbidden'
 }
 
 export function createAppRouter(
