@@ -70,6 +70,23 @@ it('does not call the current-user endpoint without a token', async () => {
   expect(store.initialized).toBe(true)
 })
 
+it('initializes the current user after login follows an empty initialization', async () => {
+  vi.mocked(authApi.login).mockResolvedValue({
+    tokenName: 'x-auth',
+    tokenValue: 'secret',
+    user,
+  })
+  vi.mocked(authApi.getCurrentUser).mockResolvedValue(user)
+  const store = useAuthStore(createPinia())
+
+  await store.initialize()
+  await store.login({ username: 'admin', password: 'password123' })
+
+  expect(authApi.getCurrentUser).toHaveBeenCalledOnce()
+  expect(store.isAuthenticated).toBe(true)
+  expect(store.user).toEqual(user)
+})
+
 it('always clears local state after logout-all', async () => {
   vi.mocked(authApi.logoutAll).mockRejectedValue(new Error('network'))
   writeStoredToken({ tokenName: 'x-auth', tokenValue: 'secret' })

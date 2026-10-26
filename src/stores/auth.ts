@@ -27,13 +27,13 @@ export const useAuthStore = defineStore('auth', () => {
     if (initialized.value) return
     if (initializePromise) return initializePromise
 
-    initializePromise = (async () => {
-      if (!token.value) {
-        initialized.value = true
-        return
-      }
-
+    initializePromise = Promise.resolve().then(async () => {
       try {
+        if (!token.value) {
+          initialized.value = true
+          return
+        }
+
         user.value = await authApi.getCurrentUser()
       } catch {
         clear()
@@ -41,7 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
         initialized.value = true
         initializePromise = null
       }
-    })()
+    })
 
     return initializePromise
   }
