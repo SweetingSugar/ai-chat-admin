@@ -38,8 +38,8 @@ const form = reactive<ProviderForm>({
   providerType: 'DEEPSEEK',
   baseUrl: '',
   apiKey: '',
-  connectTimeout: 10,
-  readTimeout: 60,
+  connectTimeout: 10000,
+  readTimeout: 120000,
   status: true,
   sort: 0,
   remark: '',
@@ -82,8 +82,8 @@ function resetForm(): void {
     providerType: 'DEEPSEEK',
     baseUrl: '',
     apiKey: '',
-    connectTimeout: 10,
-    readTimeout: 60,
+    connectTimeout: 10000,
+    readTimeout: 120000,
     status: true,
     sort: 0,
     remark: '',
@@ -104,8 +104,8 @@ function openEdit(provider: ProviderRecord): void {
     providerType: provider.providerType,
     baseUrl: provider.baseUrl,
     apiKey: '',
-    connectTimeout: provider.connectTimeout ?? 10,
-    readTimeout: provider.readTimeout ?? 60,
+    connectTimeout: provider.connectTimeout ?? 10000,
+    readTimeout: provider.readTimeout ?? 120000,
     status: provider.status === 1,
     sort: provider.sort,
     remark: provider.remark ?? '',
@@ -232,8 +232,8 @@ onMounted(() => {
         <el-form-item label="Base URL"><el-input v-model="form.baseUrl" data-test="provider-base-url" maxlength="500" /></el-form-item>
         <el-form-item label="API Key"><el-input v-model="form.apiKey" data-test="provider-api-key" type="password" show-password autocomplete="new-password" /></el-form-item>
         <p class="field-hint">非 Ollama 供应商新增时必须填写 API Key；编辑时留空将保留当前 API Key，页面不会显示已有密钥。</p>
-        <el-form-item label="连接超时"><el-input-number v-model="form.connectTimeout" :min="1" :max="120" /></el-form-item>
-        <el-form-item label="读取超时"><el-input-number v-model="form.readTimeout" :min="1" :max="600" /></el-form-item>
+        <el-form-item label="连接超时"><el-input-number v-model="form.connectTimeout" :min="1" :max="10000" /></el-form-item>
+        <el-form-item label="读取超时"><el-input-number v-model="form.readTimeout" :min="1" :max="120000" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" /></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" /></el-form-item>
         <el-form-item label="备注"><el-input v-model="form.remark" type="textarea" maxlength="500" /></el-form-item>

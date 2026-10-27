@@ -146,6 +146,43 @@ describe('ProviderManagementView', () => {
     expect(aiApi.updateProvider).toHaveBeenCalledWith(2, expect.not.objectContaining({ apiKey: expect.any(String) }))
   })
 
+  it('uses the new timeout defaults when creating a provider', async () => {
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="provider-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="provider-code"]').setValue('deepseek')
+    await wrapper.find('[data-test="provider-name"]').setValue('DeepSeek')
+    await wrapper.find('[data-test="provider-base-url"]').setValue('https://api.deepseek.com')
+    await wrapper.find('[data-test="provider-api-key"]').setValue('sk-new')
+    await wrapper.find('[data-test="provider-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.createProvider).toHaveBeenCalledWith(expect.objectContaining({
+      connectTimeout: 10000,
+      readTimeout: 120000,
+    }))
+    wrapper.unmount()
+  })
+
+  it('uses the new timeout defaults when editing a provider with empty timeouts', async () => {
+    const providerWithoutTimeouts = { ...provider, connectTimeout: null, readTimeout: null }
+    vi.mocked(aiApi.listProviders).mockResolvedValue([providerWithoutTimeouts])
+
+    const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="provider-edit-2"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="provider-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.updateProvider).toHaveBeenCalledWith(2, expect.objectContaining({
+      connectTimeout: 10000,
+      readTimeout: 120000,
+    }))
+    wrapper.unmount()
+  })
+
   it('does not delete a provider when confirmation is cancelled', async () => {
     vi.spyOn(ElMessageBox, 'confirm').mockRejectedValue(new Error('cancel'))
     const wrapper = mount(ProviderManagementView, { global: { plugins: [ElementPlus] } })
