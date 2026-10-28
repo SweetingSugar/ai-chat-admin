@@ -12,6 +12,7 @@ import ForbiddenView from '@/views/ForbiddenView.vue'
 import UserManagementView from '@/views/system/UserManagementView.vue'
 import RoleManagementView from '@/views/system/RoleManagementView.vue'
 import PermissionManagementView from '@/views/system/PermissionManagementView.vue'
+import FileManagementView from '@/views/system/FileManagementView.vue'
 import AiConfigLayout from '@/layouts/AiConfigLayout.vue'
 import ProviderManagementView from '@/views/ai/ProviderManagementView.vue'
 import ModelManagementView from '@/views/ai/ModelManagementView.vue'
@@ -45,6 +46,11 @@ export const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'system:permission:read', title: '权限管理' },
       },
       {
+        path: 'system/files',
+        component: FileManagementView,
+        meta: { requiresAuth: true, permission: 'file:read', title: '文件管理' },
+      },
+      {
         path: 'ai',
         component: AiConfigLayout,
         meta: { requiresAuth: true, title: 'AI 配置' },
@@ -76,6 +82,7 @@ const accessibleEntries = [
   ['/system/users', 'system:user:read'],
   ['/system/roles', 'system:role:read'],
   ['/system/permissions', 'system:permission:read'],
+  ['/system/files', 'file:read'],
   ['/ai/providers', 'ai:provider:read'],
   ['/ai/models', 'ai:model:read'],
 ] as const

@@ -12,6 +12,7 @@ const routes = [
   { path: '/system/users', component: routeComponent },
   { path: '/system/roles', component: routeComponent },
   { path: '/system/permissions', component: routeComponent },
+  { path: '/system/files', component: routeComponent },
   { path: '/ai/providers', component: routeComponent },
   { path: '/ai/models', component: routeComponent },
 ]
@@ -20,6 +21,7 @@ const permissionCodes = [
   'system:user:read',
   'system:role:read',
   'system:permission:read',
+  'file:read',
   'ai:provider:read',
   'ai:model:read',
 ]
@@ -56,17 +58,17 @@ describe('Sidebar', () => {
 
     expect(wrapper.find('.admin-sidebar').classes()).not.toContain('is-collapsed')
     expect(wrapper.text()).toContain('运营概览')
-    expect(initialItems).toHaveLength(6)
+    expect(initialItems).toHaveLength(7)
 
     await wrapper.get('.sidebar-toggle').trigger('click')
     expect(wrapper.find('.admin-sidebar').classes()).toContain('is-collapsed')
     expect(wrapper.text()).not.toContain('运营概览')
-    expect(wrapper.findAll('.nav-item')).toHaveLength(6)
+    expect(wrapper.findAll('.nav-item')).toHaveLength(7)
 
     await wrapper.get('.sidebar-toggle').trigger('click')
     expect(wrapper.find('.admin-sidebar').classes()).not.toContain('is-collapsed')
     expect(wrapper.text()).toContain('运营概览')
-    expect(wrapper.findAll('.nav-item')).toHaveLength(6)
+    expect(wrapper.findAll('.nav-item')).toHaveLength(7)
 
     wrapper.unmount()
   })
@@ -85,7 +87,7 @@ describe('Sidebar', () => {
     await wrapper.get('.sidebar-toggle').trigger('click')
 
     expect(wrapper.find('.admin-sidebar').classes()).not.toContain('is-collapsed')
-    expect(wrapper.findAll('.nav-item')).toHaveLength(6)
+    expect(wrapper.findAll('.nav-item')).toHaveLength(7)
 
     wrapper.unmount()
   })

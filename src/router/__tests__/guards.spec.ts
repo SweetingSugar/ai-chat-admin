@@ -88,3 +88,19 @@ it('allows a user with only user-read permission to enter user management', asyn
 it('uses the first accessible management route when dashboard is unavailable', () => {
   expect(getFirstAccessiblePath(['system:user:read'])).toBe('/system/users')
 })
+
+it('chooses file management when file-read is the first available entry', () => {
+  expect(getFirstAccessiblePath(['file:read'])).toBe('/system/files')
+})
+
+it('allows a user with only file-read permission to enter file management', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['file:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/system/files')
+
+  expect(router.currentRoute.value.fullPath).toBe('/system/files')
+})
