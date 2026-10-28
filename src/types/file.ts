@@ -11,6 +11,12 @@ export interface FileMetadata {
   updateTime: string
 }
 
+export interface FileDownloadUrl {
+  fileId: number
+  url: string
+  expiresIn: number
+}
+
 export interface FilePage {
   records: FileMetadata[]
   total: number

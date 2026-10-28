@@ -37,37 +37,57 @@ const statusOptions: Array<{ label: string; value: FileStatus }> = [
 ]
 
 const canDelete = computed(() => auth.hasPermission('file:delete'))
-const detailVisible = ref(false)
-const detailLoading = ref(false)
-const detailError = ref<string | null>(null)
-const detail = ref<FileMetadata | null>(null)
-const detailId = ref<number | null>(null)
+const canPreview = computed(() => auth.hasPermission('file:download'))
+const previewVisible = ref(false)
+const previewLoading = ref(false)
+const previewError = ref<string | null>(null)
+const previewUrl = ref<string | null>(null)
+const previewFile = ref<FileMetadata | null>(null)
 const deleteSubmittingId = ref<number | null>(null)
-let detailRequestId = 0
+let previewRequestId = 0
 let listRequestId = 0
 
-async function loadDetail(id: number): Promise<void> {
-  const requestId = ++detailRequestId
-  detailId.value = id
-  detailLoading.value = true
-  detailError.value = null
-  detail.value = null
+function isImagePreview(file: FileMetadata): boolean {
+  return file.contentType.startsWith('image/')
+}
+
+function isEmbeddedPreview(file: FileMetadata): boolean {
+  return file.contentType === 'application/pdf' || file.contentType === 'text/plain'
+}
+
+function handlePreviewContentError(): void {
+  previewError.value = '文件预览加载失败，请尝试在新窗口打开'
+}
+
+async function openPreview(file: FileMetadata): Promise<void> {
+  const requestId = ++previewRequestId
+  previewFile.value = file
+  previewUrl.value = null
+  previewError.value = file.status === 'ACTIVE' ? null : '文件当前状态不可预览'
+  previewVisible.value = true
+  if (file.status !== 'ACTIVE') return
+
+  previewLoading.value = true
   try {
-    detail.value = await filesApi.getFile(id)
+    const result = await filesApi.getAdminFilePresignedUrl(file.id)
+    if (requestId === previewRequestId) previewUrl.value = result.url
   } catch (reason) {
-    if (requestId === detailRequestId) detailError.value = getApiErrorMessage(reason)
+    if (requestId === previewRequestId) previewError.value = getApiErrorMessage(reason)
   } finally {
-    if (requestId === detailRequestId) detailLoading.value = false
+    if (requestId === previewRequestId) previewLoading.value = false
   }
 }
 
-async function openDetail(file: FileMetadata): Promise<void> {
-  detailVisible.value = true
-  await loadDetail(file.id)
+async function retryPreview(): Promise<void> {
+  if (previewFile.value) await openPreview(previewFile.value)
 }
 
-async function retryDetail(): Promise<void> {
-  if (detailId.value !== null) await loadDetail(detailId.value)
+function clearPreview(): void {
+  previewRequestId += 1
+  previewLoading.value = false
+  previewError.value = null
+  previewUrl.value = null
+  previewFile.value = null
 }
 
 async function deleteFile(file: FileMetadata): Promise<void> {
@@ -256,7 +276,15 @@ onMounted(() => {
           </el-table-column>
           <el-table-column label="操作" fixed="right" width="170">
             <template #default="{ row }">
-              <el-button :data-test="`file-detail-${row.id}`" text type="primary" @click="openDetail(row)">查看</el-button>
+              <el-button
+                v-if="canPreview"
+                :data-test="`file-preview-${row.id}`"
+                text
+                type="primary"
+                @click="openPreview(row)"
+              >
+                查看
+              </el-button>
               <el-button
                 v-if="canDelete"
                 :data-test="`file-delete-${row.id}`"
@@ -287,24 +315,58 @@ onMounted(() => {
       </div>
     </article>
 
-    <el-drawer v-model="detailVisible" title="文件详情" size="460px" :append-to-body="false">
-      <div v-loading="detailLoading">
-        <div v-if="detailError" class="inline-error" role="alert">
-          {{ detailError }}
-          <el-button text type="danger" size="small" @click="retryDetail">重试</el-button>
+    <el-dialog
+      v-model="previewVisible"
+      :title="previewFile?.originalName ?? '文件预览'"
+      width="min(960px, 90vw)"
+      destroy-on-close
+      @closed="clearPreview"
+    >
+      <div v-loading="previewLoading" class="file-preview">
+        <div v-if="previewError" class="preview-error" role="alert">
+          {{ previewError }}
+          <div class="preview-error-actions">
+            <el-button text type="danger" size="small" @click="retryPreview">重试</el-button>
+            <el-link
+              v-if="previewUrl"
+              :href="previewUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              type="primary"
+            >
+              在新窗口打开
+            </el-link>
+          </div>
         </div>
-        <el-descriptions v-else-if="detail" :column="1" border>
-          <el-descriptions-item label="文件 ID">{{ detail.id }}</el-descriptions-item>
-          <el-descriptions-item label="原始名称">{{ detail.originalName }}</el-descriptions-item>
-          <el-descriptions-item label="所属用户">{{ detail.userId }}</el-descriptions-item>
-          <el-descriptions-item label="内容类型">{{ detail.contentType }}</el-descriptions-item>
-          <el-descriptions-item label="文件大小">{{ formatFileSize(detail.fileSize) }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ statusLabel(detail.status) }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatDateTime(detail.createTime) }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ formatDateTime(detail.updateTime) }}</el-descriptions-item>
-        </el-descriptions>
+        <template v-else-if="previewUrl && previewFile">
+          <img
+            v-if="isImagePreview(previewFile)"
+            class="image-preview"
+            :src="previewUrl"
+            :alt="previewFile.originalName"
+            @error="handlePreviewContentError"
+          />
+          <iframe
+            v-else-if="isEmbeddedPreview(previewFile)"
+            class="document-preview"
+            :src="previewUrl"
+            :title="previewFile.originalName"
+            @error="handlePreviewContentError"
+          />
+          <div v-else class="unsupported-preview">
+            <p>当前文件类型暂不支持在线预览</p>
+            <el-link
+              :href="previewUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              type="primary"
+            >
+              在新窗口打开
+            </el-link>
+          </div>
+        </template>
       </div>
-    </el-drawer>
+    </el-dialog>
   </section>
 </template>
 
@@ -319,6 +381,12 @@ onMounted(() => {
 .table-scroll { overflow-x: auto; }
 .management-table { min-width: 1080px; }
 .file-name { display: block; max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-preview { min-height: 360px; display: flex; align-items: center; justify-content: center; }
+.image-preview { display: block; max-width: 100%; max-height: 68vh; object-fit: contain; }
+.document-preview { width: 100%; height: 68vh; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.preview-error, .unsupported-preview { display: grid; gap: 12px; justify-items: center; color: var(--color-text-muted); text-align: center; }
+.preview-error { color: var(--color-danger); }
+.preview-error-actions { display: flex; align-items: center; gap: 12px; }
 .inline-error { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--color-danger); font-size: 12px; }
 .pagination-row { display: flex; justify-content: flex-end; margin-top: 16px; }
 .empty-state { color: var(--color-text-muted); }

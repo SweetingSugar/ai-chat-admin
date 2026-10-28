@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from '@/api/client'
-import { deleteFile, getFile, listFiles } from '@/api/files'
+import { deleteFile, getAdminFilePresignedUrl, getFile, listFiles } from '@/api/files'
 
 const page = {
   records: [],
@@ -50,5 +50,17 @@ describe('file API wrappers', () => {
 
     expect(apiClient.get).toHaveBeenCalledWith('admin/files/9')
     expect(apiClient.delete).toHaveBeenCalledWith('admin/files/9')
+  })
+
+  it('requests an admin presigned URL for preview', async () => {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      fileId: 9,
+      url: 'https://download.example/file',
+      expiresIn: 600,
+    })
+
+    await getAdminFilePresignedUrl(9)
+
+    expect(apiClient.get).toHaveBeenCalledWith('admin/files/9/presigned-url')
   })
 })

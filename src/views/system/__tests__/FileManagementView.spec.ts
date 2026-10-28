@@ -9,6 +9,7 @@ const permissionState = vi.hoisted(() => ({ values: new Set<string>() }))
 vi.mock('@/api/files', () => ({
   listFiles: vi.fn(),
   getFile: vi.fn(),
+  getAdminFilePresignedUrl: vi.fn(),
   deleteFile: vi.fn(),
 }))
 
@@ -38,9 +39,14 @@ const page = {
 }
 
 beforeEach(() => {
-  permissionState.values = new Set(['file:read', 'file:delete'])
+  permissionState.values = new Set(['file:read', 'file:delete', 'file:download'])
   vi.mocked(filesApi.listFiles).mockResolvedValue(page)
   vi.mocked(filesApi.getFile).mockResolvedValue(file)
+  vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+    fileId: 9,
+    url: 'https://download.example/report.pdf',
+    expiresIn: 600,
+  })
   vi.mocked(filesApi.deleteFile).mockResolvedValue(undefined)
 })
 
@@ -147,16 +153,58 @@ describe('FileManagementView', () => {
     expect(filesApi.deleteFile).toHaveBeenCalledOnce()
   })
 
-  it('loads the selected file detail into the drawer', async () => {
+  it('opens a PDF preview using the admin presigned URL', async () => {
     const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
 
-    await wrapper.find('[data-test="file-detail-9"]').trigger('click')
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
     await flushPromises()
 
-    expect(filesApi.getFile).toHaveBeenCalledWith(9)
-    expect(wrapper.text()).toContain('文件 ID')
+    expect(filesApi.getAdminFilePresignedUrl).toHaveBeenCalledWith(9)
+    expect(wrapper.find('iframe').attributes('src')).toBe('https://download.example/report.pdf')
     expect(wrapper.text()).toContain('report.pdf')
+  })
+
+  it('renders images in an image preview', async () => {
+    vi.mocked(filesApi.listFiles).mockResolvedValue({
+      ...page,
+      records: [{ ...file, contentType: 'image/jpeg', originalName: 'photo.jpg' }],
+    })
+    vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+      fileId: 9,
+      url: 'https://download.example/photo.jpg',
+      expiresIn: 600,
+    })
+    const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('img').attributes('src')).toBe('https://download.example/photo.jpg')
+  })
+
+  it('shows an open link for unsupported document previews', async () => {
+    vi.mocked(filesApi.listFiles).mockResolvedValue({
+      ...page,
+      records: [{
+        ...file,
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      }],
+    })
+    vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+      fileId: 9,
+      url: 'https://download.example/report.docx',
+      expiresIn: 600,
+    })
+    const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('暂不支持在线预览')
+    expect(wrapper.find('a[href="https://download.example/report.docx"]').exists()).toBe(true)
   })
 
   it('requires confirmation before deleting a file', async () => {
@@ -194,15 +242,51 @@ describe('FileManagementView', () => {
     expect(wrapper.find('[data-test="file-delete-9"]').exists()).toBe(false)
   })
 
-  it('keeps the list when detail loading fails', async () => {
-    vi.mocked(filesApi.getFile).mockRejectedValueOnce(new Error('detail failed'))
+  it('hides preview actions without file-download permission', async () => {
+    permissionState.values.delete('file:download')
     const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
 
-    await wrapper.find('[data-test="file-detail-9"]').trigger('click')
+    expect(wrapper.find('[data-test="file-preview-9"]').exists()).toBe(false)
+  })
+
+  it('retries a failed preview request', async () => {
+    vi.mocked(filesApi.getAdminFilePresignedUrl).mockRejectedValueOnce(new Error('preview failed'))
+    const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('report.pdf')
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
+    await flushPromises()
     expect(wrapper.text()).toContain('请求失败，请稍后重试')
+
+    await wrapper.get('.preview-error button').trigger('click')
+    await flushPromises()
+    expect(filesApi.getAdminFilePresignedUrl).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('iframe').exists()).toBe(true)
+  })
+
+  it('ignores a stale preview response after the dialog is reopened', async () => {
+    let resolveFirst: (value: { fileId: number; url: string; expiresIn: number }) => void = () => undefined
+    let resolveSecond: (value: { fileId: number; url: string; expiresIn: number }) => void = () => undefined
+    vi.mocked(filesApi.getAdminFilePresignedUrl)
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve }))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveSecond = resolve }))
+
+    const wrapper = mount(FileManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
+    await flushPromises()
+
+    await wrapper.findComponent({ name: 'ElDialog' }).vm.$emit('closed')
+    await wrapper.find('[data-test="file-preview-9"]').trigger('click')
+    await flushPromises()
+
+    resolveFirst({ fileId: 9, url: 'https://download.example/old.pdf', expiresIn: 600 })
+    await flushPromises()
+    expect(wrapper.find('iframe').exists()).toBe(false)
+
+    resolveSecond({ fileId: 9, url: 'https://download.example/new.pdf', expiresIn: 600 })
+    await flushPromises()
+    expect(wrapper.find('iframe').attributes('src')).toBe('https://download.example/new.pdf')
   })
 })
