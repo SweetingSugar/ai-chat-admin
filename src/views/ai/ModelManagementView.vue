@@ -19,6 +19,7 @@ interface ModelForm {
   temperature?: number
   topP?: number
   supportStream: boolean
+  supportVision: boolean
   isDefault: boolean
   status: boolean
   sort: number
@@ -48,6 +49,7 @@ const form = reactive<ModelForm>({
   temperature: 0.7,
   topP: 0.9,
   supportStream: true,
+  supportVision: false,
   isDefault: false,
   status: true,
   sort: 0,
@@ -91,6 +93,7 @@ function toModelPayload(value: ModelForm): ModelPayload {
     temperature: value.temperature,
     topP: value.topP,
     supportStream: (value.supportStream ? 1 : 0) as BinaryStatus,
+    supportVision: (value.supportVision ? 1 : 0) as BinaryStatus,
     isDefault: (value.isDefault ? 1 : 0) as BinaryStatus,
     status: (value.status ? 1 : 0) as BinaryStatus,
     sort: value.sort,
@@ -132,6 +135,7 @@ function resetForm(): void {
     temperature: 0.7,
     topP: 0.9,
     supportStream: true,
+    supportVision: false,
     isDefault: false,
     status: true,
     sort: 0,
@@ -159,6 +163,7 @@ function openEdit(model: ModelRecord): void {
     temperature: model.temperature ?? undefined,
     topP: model.topP ?? undefined,
     supportStream: model.supportStream,
+    supportVision: model.supportVision,
     isDefault: model.defaultModel,
     status: model.status === 1,
     sort: model.sort,
@@ -257,7 +262,7 @@ onMounted(() => {
           <el-table-column prop="contextWindow" label="上下文" width="110" />
           <el-table-column prop="maxOutputTokens" label="最大输出" width="110" />
           <el-table-column label="参数" width="145"><template #default="{ row }">T {{ row.temperature ?? '—' }} / P {{ row.topP ?? '—' }}</template></el-table-column>
-          <el-table-column label="能力" width="150"><template #default="{ row }"><el-tag v-if="row.supportStream" size="small" type="success">流式</el-tag><el-tag v-if="row.defaultModel" size="small" type="warning">默认</el-tag></template></el-table-column>
+          <el-table-column label="能力" width="150"><template #default="{ row }"><el-tag v-if="row.supportStream" size="small" type="success">流式</el-tag><el-tag v-if="row.supportVision" size="small" type="success">视觉</el-tag><el-tag v-if="row.defaultModel" size="small" type="warning">默认</el-tag></template></el-table-column>
           <el-table-column label="状态" width="90"><template #default="{ row }"><StatusTag :status="row.status" /></template></el-table-column>
           <el-table-column label="操作" fixed="right" width="180">
             <template #default="{ row }">
@@ -285,6 +290,9 @@ onMounted(() => {
         <el-form-item label="Temperature"><el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" :precision="2" /></el-form-item>
         <el-form-item label="Top P"><el-input-number v-model="form.topP" :min="0" :max="1" :step="0.1" :precision="2" /></el-form-item>
         <el-form-item label="支持流式"><el-switch v-model="form.supportStream" /></el-form-item>
+        <el-form-item label="支持视觉识图">
+          <el-switch v-model="form.supportVision" data-test="model-vision" />
+        </el-form-item>
         <el-form-item label="设为默认"><el-switch v-model="form.isDefault" /><span class="field-hint">设为默认会清除其他模型的默认标记。</span></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" /></el-form-item>

@@ -47,6 +47,7 @@ const model = {
   temperature: 0.7,
   topP: 0.9,
   supportStream: true,
+  supportVision: false,
   defaultModel: false,
   configVersion: 1,
   status: 1,
@@ -76,6 +77,40 @@ describe('ModelManagementView', () => {
     expect(wrapper.text()).toContain('DeepSeek')
   })
 
+  it('shows the visual capability tag for vision models', async () => {
+    vi.mocked(aiApi.listModels).mockResolvedValueOnce([{ ...model, supportVision: true }])
+    const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('视觉')
+  })
+
+  it('hydrates visual capability and submits binary values for disabled and enabled models', async () => {
+    vi.mocked(aiApi.listModels).mockResolvedValueOnce([{ ...model, supportVision: true }])
+    const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    await wrapper.find('[data-test="model-edit-4"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('[data-test="model-vision"] input').attributes('aria-checked')).toBe('true')
+
+    await wrapper.find('[data-test="model-vision"]').trigger('click')
+    await wrapper.find('[data-test="model-submit"]').trigger('click')
+    await flushPromises()
+    expect(aiApi.updateModel).toHaveBeenCalledWith(4, expect.objectContaining({
+      supportVision: 0,
+    }))
+
+    await wrapper.find('[data-test="model-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="model-vision"]').trigger('click')
+    await wrapper.find('[data-test="model-submit"]').trigger('click')
+    await flushPromises()
+    expect(aiApi.createModel).toHaveBeenCalledWith(expect.objectContaining({
+      supportVision: 1,
+    }))
+  })
+
   it('submits CHAT as the default model type when creating a model', async () => {
     const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
     await flushPromises()
@@ -89,6 +124,7 @@ describe('ModelManagementView', () => {
       providerId: 1,
       modelType: 'CHAT',
       supportStream: 1,
+      supportVision: 0,
       isDefault: 0,
       status: 1,
     }))

@@ -42,6 +42,7 @@ export interface ModelRecord {
   temperature: number | null
   topP: number | null
   supportStream: boolean
+  supportVision: boolean
   defaultModel: boolean
   configVersion: number | null
   status: number
@@ -59,6 +60,7 @@ export interface ModelPayload {
   temperature?: number
   topP?: number
   supportStream?: BinaryStatus
+  supportVision?: BinaryStatus
   isDefault?: BinaryStatus
   status?: BinaryStatus
   sort?: number
