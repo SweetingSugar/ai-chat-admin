@@ -14,6 +14,7 @@ interface ModelForm {
   modelCode: string
   modelName: string
   modelType: string
+  embeddingDimension: number
   contextWindow: number
   maxOutputTokens: number
   temperature?: number
@@ -44,6 +45,7 @@ const form = reactive<ModelForm>({
   modelCode: '',
   modelName: '',
   modelType: 'CHAT',
+  embeddingDimension: 1024,
   contextWindow: 8192,
   maxOutputTokens: 1024,
   temperature: 0.7,
@@ -88,6 +90,9 @@ function toModelPayload(value: ModelForm): ModelPayload {
     modelCode: value.modelCode.trim(),
     modelName: value.modelName.trim(),
     modelType: value.modelType.trim(),
+    embeddingDimension: value.modelType.trim().toUpperCase() === 'EMBEDDING'
+      ? value.embeddingDimension
+      : null,
     contextWindow: value.contextWindow,
     maxOutputTokens: value.maxOutputTokens,
     temperature: value.temperature,
@@ -130,6 +135,7 @@ function resetForm(): void {
     modelCode: '',
     modelName: '',
     modelType: 'CHAT',
+    embeddingDimension: 1024,
     contextWindow: 8192,
     maxOutputTokens: 1024,
     temperature: 0.7,
@@ -158,6 +164,7 @@ function openEdit(model: ModelRecord): void {
     modelCode: model.modelCode,
     modelName: model.modelName,
     modelType: model.modelType,
+    embeddingDimension: model.embeddingDimension ?? 1024,
     contextWindow: model.contextWindow,
     maxOutputTokens: model.maxOutputTokens,
     temperature: model.temperature ?? undefined,
@@ -259,6 +266,7 @@ onMounted(() => {
           <el-table-column label="模型" min-width="210"><template #default="{ row }"><strong>{{ row.modelName }}</strong><small>{{ row.modelCode }}</small></template></el-table-column>
           <el-table-column prop="providerName" label="供应商" min-width="130" />
           <el-table-column prop="modelType" label="类型" width="100" />
+          <el-table-column label="Embedding 维度" width="130"><template #default="{ row }">{{ row.embeddingDimension ?? '—' }}</template></el-table-column>
           <el-table-column prop="contextWindow" label="上下文" width="110" />
           <el-table-column prop="maxOutputTokens" label="最大输出" width="110" />
           <el-table-column label="参数" width="145"><template #default="{ row }">T {{ row.temperature ?? '—' }} / P {{ row.topP ?? '—' }}</template></el-table-column>
@@ -285,6 +293,16 @@ onMounted(() => {
         <el-form-item label="模型编码"><el-input v-model="form.modelCode" data-test="model-code" maxlength="100" /></el-form-item>
         <el-form-item label="模型名称"><el-input v-model="form.modelName" data-test="model-name" maxlength="100" /></el-form-item>
         <el-form-item label="模型类型"><el-input v-model="form.modelType" data-test="model-type" maxlength="32" /></el-form-item>
+        <el-form-item label="Embedding 维度">
+          <el-input-number
+            v-model="form.embeddingDimension"
+            data-test="model-embedding-dimension"
+            :min="1"
+            :step="1"
+            controls-position="right"
+            style="width: 100%"
+          />
+        </el-form-item>
         <el-form-item label="上下文窗口"><el-input-number v-model="form.contextWindow" :min="1" /></el-form-item>
         <el-form-item label="最大输出 Token"><el-input-number v-model="form.maxOutputTokens" :min="1" /></el-form-item>
         <el-form-item label="Temperature"><el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" :precision="2" /></el-form-item>

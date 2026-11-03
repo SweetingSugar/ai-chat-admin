@@ -42,6 +42,7 @@ const model = {
   modelCode: 'deepseek-chat',
   modelName: 'DeepSeek Chat',
   modelType: 'chat',
+  embeddingDimension: null,
   contextWindow: 65536,
   maxOutputTokens: 4096,
   temperature: 0.7,
@@ -85,6 +86,41 @@ describe('ModelManagementView', () => {
     expect(wrapper.text()).toContain('视觉')
   })
 
+  it('shows embedding dimensions returned by the model query', async () => {
+    vi.mocked(aiApi.listModels).mockResolvedValueOnce([{
+      ...model,
+      modelType: 'EMBEDDING',
+      embeddingDimension: 1536,
+    }])
+    const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('1536')
+  })
+
+  it('hydrates and submits the embedding dimension for an embedding model', async () => {
+    const embeddingModel = {
+      ...model,
+      modelType: 'EMBEDDING',
+      embeddingDimension: 1536,
+    }
+    vi.mocked(aiApi.listModels).mockResolvedValueOnce([embeddingModel])
+    const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+
+    await wrapper.find('[data-test="model-edit-4"]').trigger('click')
+    await flushPromises()
+
+    const dimensionInput = wrapper.find('[data-test="model-embedding-dimension"] input')
+    expect(dimensionInput.element.value).toBe('1536')
+    await wrapper.find('[data-test="model-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.updateModel).toHaveBeenCalledWith(4, expect.objectContaining({
+      embeddingDimension: 1536,
+    }))
+  })
+
   it('hydrates visual capability and submits binary values for disabled and enabled models', async () => {
     vi.mocked(aiApi.listModels).mockResolvedValueOnce([{ ...model, supportVision: true }])
     const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
@@ -116,6 +152,7 @@ describe('ModelManagementView', () => {
     await flushPromises()
     await wrapper.find('[data-test="model-create"]').trigger('click')
     await flushPromises()
+    expect(wrapper.find('[data-test="model-embedding-dimension"] input').element.value).toBe('1024')
     await wrapper.find('[data-test="model-code"]').setValue('deepseek-chat')
     await wrapper.find('[data-test="model-name"]').setValue('DeepSeek Chat')
     await wrapper.find('[data-test="model-submit"]').trigger('click')
@@ -123,10 +160,28 @@ describe('ModelManagementView', () => {
     expect(aiApi.createModel).toHaveBeenCalledWith(expect.objectContaining({
       providerId: 1,
       modelType: 'CHAT',
+      embeddingDimension: null,
       supportStream: 1,
       supportVision: 0,
       isDefault: 0,
       status: 1,
+    }))
+  })
+
+  it('submits the default embedding dimension for an embedding model', async () => {
+    const wrapper = mount(ModelManagementView, { global: { plugins: [ElementPlus] } })
+    await flushPromises()
+    await wrapper.find('[data-test="model-create"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-test="model-code"]').setValue('bge-m3')
+    await wrapper.find('[data-test="model-name"]').setValue('BGE M3')
+    await wrapper.find('[data-test="model-type"]').setValue('EMBEDDING')
+    await wrapper.find('[data-test="model-submit"]').trigger('click')
+    await flushPromises()
+
+    expect(aiApi.createModel).toHaveBeenCalledWith(expect.objectContaining({
+      modelType: 'EMBEDDING',
+      embeddingDimension: 1024,
     }))
   })
 

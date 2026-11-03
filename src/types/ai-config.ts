@@ -37,6 +37,7 @@ export interface ModelRecord {
   modelCode: string
   modelName: string
   modelType: string
+  embeddingDimension: number | null
   contextWindow: number
   maxOutputTokens: number
   temperature: number | null
@@ -55,6 +56,7 @@ export interface ModelPayload {
   modelCode: string
   modelName: string
   modelType: string
+  embeddingDimension?: number | null
   contextWindow?: number
   maxOutputTokens?: number
   temperature?: number
