@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { getApiErrorMessage } from '@/api/client'
+import * as filesApi from '@/api/files'
 import * as knowledgeApi from '@/api/knowledge'
 import PageHeader from '@/components/management/PageHeader.vue'
+import type { FileMetadata } from '@/types/file'
 import type {
   KnowledgeBaseAdmin,
   KnowledgeBaseStatus,
@@ -34,9 +36,17 @@ const contentError = ref<string | null>(null)
 const contentDocument = ref<KnowledgeDocument | null>(null)
 const selectedContent = ref<KnowledgeDocumentContent | null>(null)
 
+const previewVisible = ref(false)
+const previewLoading = ref(false)
+const previewError = ref<string | null>(null)
+const previewUrl = ref<string | null>(null)
+const previewFile = ref<FileMetadata | null>(null)
+const selectedFileDocument = ref<KnowledgeDocument | null>(null)
+
 let baseRequestId = 0
 let documentRequestId = 0
 let contentRequestId = 0
+let previewRequestId = 0
 
 const baseStatusLabels: Record<KnowledgeBaseStatus, string> = {
   ACTIVE: '启用',
@@ -165,6 +175,63 @@ function clearContent(): void {
   contentLoading.value = false
 }
 
+function isImagePreview(file: FileMetadata): boolean {
+  return file.contentType.startsWith('image/')
+}
+
+function isEmbeddedPreview(file: FileMetadata): boolean {
+  return file.contentType === 'application/pdf' || file.contentType === 'text/plain'
+}
+
+function handlePreviewContentError(): void {
+  previewError.value = '文件预览加载失败，请尝试在新窗口打开'
+}
+
+function openFileDocument(row: KnowledgeDocument): void {
+  selectedFileDocument.value = row
+  void openFilePreview(row)
+}
+
+async function openFilePreview(row: KnowledgeDocument): Promise<void> {
+  if (row.sourceType !== 'FILE' || row.fileId === null) return
+  const requestId = ++previewRequestId
+  previewVisible.value = true
+  previewLoading.value = true
+  previewError.value = null
+  previewUrl.value = null
+  previewFile.value = null
+  try {
+    const file = await filesApi.getFile(row.fileId)
+    if (requestId !== previewRequestId) return
+    previewFile.value = file
+    if (file.status !== 'ACTIVE') {
+      previewError.value = '文件当前状态不可预览'
+      return
+    }
+    const result = await filesApi.getAdminFilePresignedUrl(row.fileId)
+    if (requestId === previewRequestId) previewUrl.value = result.url
+  } catch (reason) {
+    if (requestId === previewRequestId) previewError.value = getApiErrorMessage(reason)
+  } finally {
+    if (requestId === previewRequestId) previewLoading.value = false
+  }
+}
+
+async function retryFilePreview(): Promise<void> {
+  const row = selectedFileDocument.value
+  if (row) await openFilePreview(row)
+}
+
+function clearFilePreview(): void {
+  previewRequestId += 1
+  previewVisible.value = false
+  previewLoading.value = false
+  previewError.value = null
+  previewUrl.value = null
+  previewFile.value = null
+  selectedFileDocument.value = null
+}
+
 function changeBasePage(value: number): void {
   basePage.value = value
   void loadKnowledgeBases()
@@ -288,7 +355,16 @@ onMounted(() => {
               >
                 查看内容
               </el-button>
-              <span v-else class="muted-action">文件文档</span>
+              <el-button
+                v-else-if="row.fileId !== null"
+                :data-test="`knowledge-document-file-${row.id}`"
+                text
+                type="primary"
+                @click="openFileDocument(row)"
+              >
+                查看文件
+              </el-button>
+              <span v-else class="muted-action">文件不可预览</span>
             </template>
           </el-table-column>
           <template #empty><span class="empty-state">暂无文档数据</span></template>
@@ -320,6 +396,52 @@ onMounted(() => {
           <el-button text type="danger" size="small" @click="retryTextContent">重试</el-button>
         </div>
         <pre v-else-if="selectedContent" class="document-content">{{ selectedContent.content }}</pre>
+      </div>
+    </el-drawer>
+
+    <el-drawer
+      v-model="previewVisible"
+      :title="previewFile?.originalName ?? '文件预览'"
+      size="min(960px, 90vw)"
+      :append-to-body="false"
+      @close="clearFilePreview"
+    >
+      <div v-loading="previewLoading" class="file-preview">
+        <div v-if="previewError" class="preview-error" role="alert">
+          {{ previewError }}
+          <div class="preview-error-actions">
+            <el-button text type="danger" size="small" @click="retryFilePreview">重试</el-button>
+            <el-link
+              v-if="previewUrl"
+              :href="previewUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              type="primary"
+            >在新窗口打开</el-link>
+          </div>
+        </div>
+        <template v-else-if="previewUrl && previewFile">
+          <img
+            v-if="isImagePreview(previewFile)"
+            class="image-preview"
+            :src="previewUrl"
+            :alt="previewFile.originalName"
+            @error="handlePreviewContentError"
+          />
+          <iframe
+            v-else-if="isEmbeddedPreview(previewFile)"
+            class="document-preview"
+            :src="previewUrl"
+            :title="previewFile.originalName"
+            @error="handlePreviewContentError"
+          />
+          <div v-else class="unsupported-preview">
+            <p>当前文件类型暂不支持在线预览</p>
+            <el-link :href="previewUrl" target="_blank" rel="noopener noreferrer" type="primary">
+              在新窗口打开
+            </el-link>
+          </div>
+        </template>
       </div>
     </el-drawer>
   </section>
@@ -386,5 +508,45 @@ onMounted(() => {
   background: var(--color-background);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+.file-preview {
+  min-height: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+}
+
+.document-preview {
+  width: 100%;
+  height: 68vh;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.preview-error,
+.unsupported-preview {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.preview-error {
+  color: var(--color-danger);
+}
+
+.preview-error-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 </style>

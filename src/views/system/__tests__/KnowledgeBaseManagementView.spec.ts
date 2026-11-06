@@ -3,6 +3,7 @@ import ElementPlus from 'element-plus'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import KnowledgeBaseManagementView from '@/views/system/KnowledgeBaseManagementView.vue'
 import * as knowledgeApi from '@/api/knowledge'
+import * as filesApi from '@/api/files'
 
 vi.mock('@/api/knowledge', () => ({
   listKnowledgeBases: vi.fn(),
@@ -46,6 +47,17 @@ const textDocument = {
   updateTime: '2026-11-05T10:00:00',
 }
 
+const file = {
+  id: 9,
+  userId: 100,
+  originalName: '产品手册.pdf',
+  contentType: 'application/pdf',
+  fileSize: 2048,
+  status: 'ACTIVE' as const,
+  createTime: '2026-11-05T10:00:00',
+  updateTime: '2026-11-05T10:00:00',
+}
+
 const basePage = { records: [base], total: 1, current: 1, size: 20, pages: 1 }
 const documentPage = { records: [textDocument], total: 1, current: 1, size: 20, pages: 1 }
 
@@ -56,6 +68,12 @@ beforeEach(() => {
     documentId: 21,
     title: '制度',
     content: '第一条',
+  })
+  vi.mocked(filesApi.getFile).mockResolvedValue(file)
+  vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+    fileId: 9,
+    url: 'https://download.example/manual.pdf',
+    expiresIn: 600,
   })
 })
 
@@ -112,6 +130,100 @@ describe('KnowledgeBaseManagementView', () => {
     await documentPagination.vm.$emit('size-change', 50)
     await flushPromises()
     expect(knowledgeApi.listKnowledgeDocuments).toHaveBeenLastCalledWith(12, { page: 1, size: 50 })
+  })
+
+  it('loads file metadata and a presigned URL for a file document', async () => {
+    vi.mocked(knowledgeApi.listKnowledgeDocuments).mockResolvedValue({
+      ...documentPage,
+      records: [{
+        ...textDocument,
+        id: 22,
+        title: '产品手册文件',
+        sourceType: 'FILE',
+        fileId: 9,
+      }],
+    })
+    const wrapper = mount(KnowledgeBaseManagementView, {
+      global: { plugins: [ElementPlus] },
+    })
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-documents-12"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-document-file-22"]').trigger('click')
+    await flushPromises()
+
+    expect(filesApi.getFile).toHaveBeenCalledWith(9)
+    expect(filesApi.getAdminFilePresignedUrl).toHaveBeenCalledWith(9)
+    expect(wrapper.find('iframe').attributes('src')).toBe('https://download.example/manual.pdf')
+  })
+
+  it('renders an image file document as an image preview', async () => {
+    vi.mocked(knowledgeApi.listKnowledgeDocuments).mockResolvedValue({
+      ...documentPage,
+      records: [{ ...textDocument, id: 22, sourceType: 'FILE', fileId: 9 }],
+    })
+    vi.mocked(filesApi.getFile).mockResolvedValue({ ...file, contentType: 'image/jpeg' })
+    vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+      fileId: 9,
+      url: 'https://download.example/manual.jpg',
+      expiresIn: 600,
+    })
+    const wrapper = mount(KnowledgeBaseManagementView, {
+      global: { plugins: [ElementPlus] },
+    })
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-documents-12"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-document-file-22"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('img').attributes('src')).toBe('https://download.example/manual.jpg')
+  })
+
+  it('shows an open link for unsupported file types', async () => {
+    vi.mocked(knowledgeApi.listKnowledgeDocuments).mockResolvedValue({
+      ...documentPage,
+      records: [{ ...textDocument, id: 22, sourceType: 'FILE', fileId: 9 }],
+    })
+    vi.mocked(filesApi.getFile).mockResolvedValue({
+      ...file,
+      contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    })
+    vi.mocked(filesApi.getAdminFilePresignedUrl).mockResolvedValue({
+      fileId: 9,
+      url: 'https://download.example/manual.docx',
+      expiresIn: 600,
+    })
+    const wrapper = mount(KnowledgeBaseManagementView, {
+      global: { plugins: [ElementPlus] },
+    })
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-documents-12"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-document-file-22"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('暂不支持在线预览')
+    expect(wrapper.find('a[href="https://download.example/manual.docx"]').exists()).toBe(true)
+  })
+
+  it('does not request a presigned URL for an inactive file', async () => {
+    vi.mocked(knowledgeApi.listKnowledgeDocuments).mockResolvedValue({
+      ...documentPage,
+      records: [{ ...textDocument, id: 22, sourceType: 'FILE', fileId: 9 }],
+    })
+    vi.mocked(filesApi.getFile).mockResolvedValue({ ...file, status: 'DELETED' })
+    const wrapper = mount(KnowledgeBaseManagementView, {
+      global: { plugins: [ElementPlus] },
+    })
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-documents-12"]').trigger('click')
+    await flushPromises()
+    await wrapper.get('[data-test="knowledge-document-file-22"]').trigger('click')
+    await flushPromises()
+
+    expect(filesApi.getAdminFilePresignedUrl).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('文件当前状态不可预览')
   })
 
   it('keeps the newest document response after switching knowledge bases', async () => {
