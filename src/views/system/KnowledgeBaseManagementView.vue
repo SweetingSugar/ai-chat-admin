@@ -78,6 +78,18 @@ function formatIndexState(row: KnowledgeBaseAdmin): string {
   return row.activeIndexVersion === null ? '未建立' : `版本 ${row.activeIndexVersion}`
 }
 
+function getBaseStatusLabel(status: KnowledgeBaseStatus): string {
+  return baseStatusLabels[status]
+}
+
+function getSourceTypeLabel(sourceType: KnowledgeDocumentSourceType): string {
+  return sourceTypeLabels[sourceType]
+}
+
+function getDocumentStatusLabel(status: KnowledgeDocumentStatus): string {
+  return documentStatusLabels[status]
+}
+
 async function loadKnowledgeBases(): Promise<void> {
   const requestId = ++baseRequestId
   loading.value = true
@@ -280,7 +292,7 @@ onMounted(() => {
             <template #default="{ row }">{{ row.description || '—' }}</template>
           </el-table-column>
           <el-table-column label="状态" width="100">
-            <template #default="{ row }">{{ baseStatusLabels[row.status] }}</template>
+            <template #default="{ row }">{{ getBaseStatusLabel(row.status) }}</template>
           </el-table-column>
           <el-table-column label="索引状态" width="120">
             <template #default="{ row }">{{ formatIndexState(row) }}</template>
@@ -334,11 +346,11 @@ onMounted(() => {
         <el-table :data="documents" row-key="id" class="management-table">
           <el-table-column prop="title" label="标题" min-width="170" />
           <el-table-column label="来源" width="80">
-            <template #default="{ row }">{{ sourceTypeLabels[row.sourceType] }}</template>
+            <template #default="{ row }">{{ getSourceTypeLabel(row.sourceType) }}</template>
           </el-table-column>
           <el-table-column prop="fileId" label="文件 ID" width="90" />
           <el-table-column label="状态" width="90">
-            <template #default="{ row }">{{ documentStatusLabels[row.status] }}</template>
+            <template #default="{ row }">{{ getDocumentStatusLabel(row.status) }}</template>
           </el-table-column>
           <el-table-column prop="chunkCount" label="分块数" width="80" />
           <el-table-column label="更新时间" min-width="165">
