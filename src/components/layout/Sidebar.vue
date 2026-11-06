@@ -19,6 +19,7 @@ const navigationGroups = [
       { label: '角色管理', path: '/system/roles', permission: 'system:role:read' },
       { label: '权限管理', path: '/system/permissions', permission: 'system:permission:read' },
       { label: '文件管理', path: '/system/files', permission: 'file:read' },
+      { label: '知识库管理', path: '/system/knowledge-bases', permission: 'knowledge:read' },
     ],
   },
   {

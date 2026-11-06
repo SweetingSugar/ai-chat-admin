@@ -13,6 +13,7 @@ const routes = [
   { path: '/system/roles', component: routeComponent },
   { path: '/system/permissions', component: routeComponent },
   { path: '/system/files', component: routeComponent },
+  { path: '/system/knowledge-bases', component: routeComponent },
   { path: '/ai/providers', component: routeComponent },
   { path: '/ai/models', component: routeComponent },
 ]
@@ -26,7 +27,7 @@ const permissionCodes = [
   'ai:model:read',
 ]
 
-async function mountSidebar() {
+async function mountSidebar(extraPermissionCodes: string[] = []) {
   const pinia = createPinia()
   const router = createRouter({ history: createMemoryHistory(), routes })
   const auth = useAuthStore(pinia)
@@ -41,7 +42,7 @@ async function mountSidebar() {
     lastLoginTime: null,
     createTime: '2026-10-26T00:00:00',
     roleCodes: ['admin'],
-    permissionCodes,
+    permissionCodes: [...permissionCodes, ...extraPermissionCodes],
   }
   await router.push('/dashboard')
   await router.isReady()
@@ -88,6 +89,25 @@ describe('Sidebar', () => {
 
     expect(wrapper.find('.admin-sidebar').classes()).not.toContain('is-collapsed')
     expect(wrapper.findAll('.nav-item')).toHaveLength(7)
+
+    wrapper.unmount()
+  })
+
+  it('shows knowledge-base management with knowledge-read permission', async () => {
+    const wrapper = await mountSidebar(['knowledge:read'])
+
+    expect(wrapper.text()).toContain('知识库管理')
+    expect(wrapper.get('a[href="/system/knowledge-bases"]')).toBeTruthy()
+    expect(wrapper.findAll('.nav-item')).toHaveLength(8)
+
+    wrapper.unmount()
+  })
+
+  it('hides knowledge-base management without knowledge-read permission', async () => {
+    const wrapper = await mountSidebar()
+
+    expect(wrapper.text()).not.toContain('知识库管理')
+    expect(wrapper.find('a[href="/system/knowledge-bases"]').exists()).toBe(false)
 
     wrapper.unmount()
   })
