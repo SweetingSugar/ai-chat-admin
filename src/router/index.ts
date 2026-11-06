@@ -13,6 +13,7 @@ import UserManagementView from '@/views/system/UserManagementView.vue'
 import RoleManagementView from '@/views/system/RoleManagementView.vue'
 import PermissionManagementView from '@/views/system/PermissionManagementView.vue'
 import FileManagementView from '@/views/system/FileManagementView.vue'
+import KnowledgeBaseManagementView from '@/views/system/KnowledgeBaseManagementView.vue'
 import AiConfigLayout from '@/layouts/AiConfigLayout.vue'
 import ProviderManagementView from '@/views/ai/ProviderManagementView.vue'
 import ModelManagementView from '@/views/ai/ModelManagementView.vue'
@@ -51,6 +52,11 @@ export const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'file:read', title: '文件管理' },
       },
       {
+        path: 'system/knowledge-bases',
+        component: KnowledgeBaseManagementView,
+        meta: { requiresAuth: true, permission: 'knowledge:read', title: '知识库管理' },
+      },
+      {
         path: 'ai',
         component: AiConfigLayout,
         meta: { requiresAuth: true, title: 'AI 配置' },
@@ -83,6 +89,7 @@ const accessibleEntries = [
   ['/system/roles', 'system:role:read'],
   ['/system/permissions', 'system:permission:read'],
   ['/system/files', 'file:read'],
+  ['/system/knowledge-bases', 'knowledge:read'],
   ['/ai/providers', 'ai:provider:read'],
   ['/ai/models', 'ai:model:read'],
 ] as const

@@ -104,3 +104,19 @@ it('allows a user with only file-read permission to enter file management', asyn
 
   expect(router.currentRoute.value.fullPath).toBe('/system/files')
 })
+
+it('chooses knowledge-base management when it is the first available entry', () => {
+  expect(getFirstAccessiblePath(['knowledge:read'])).toBe('/system/knowledge-bases')
+})
+
+it('allows a user with only knowledge-read permission to enter knowledge-base management', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['knowledge:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/system/knowledge-bases')
+
+  expect(router.currentRoute.value.fullPath).toBe('/system/knowledge-bases')
+})
