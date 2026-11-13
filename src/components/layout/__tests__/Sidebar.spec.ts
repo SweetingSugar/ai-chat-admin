@@ -16,6 +16,9 @@ const routes = [
   { path: '/system/knowledge-bases', component: routeComponent },
   { path: '/ai/providers', component: routeComponent },
   { path: '/ai/models', component: routeComponent },
+  { path: '/tools', component: routeComponent },
+  { path: '/tools/mcp-servers', component: routeComponent },
+  { path: '/tools/invocation-logs', component: routeComponent },
 ]
 const permissionCodes = [
   'admin:dashboard:read',
@@ -108,6 +111,33 @@ describe('Sidebar', () => {
 
     expect(wrapper.text()).not.toContain('知识库管理')
     expect(wrapper.find('a[href="/system/knowledge-bases"]').exists()).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('shows tool navigation only for the matching read permissions', async () => {
+    const wrapper = await mountSidebar([
+      'tool:read',
+      'tool:mcp-server:read',
+      'tool:invocation:read',
+    ])
+
+    expect(wrapper.text()).toContain('工具管理')
+    expect(wrapper.text()).toContain('MCP Server')
+    expect(wrapper.text()).toContain('调用日志')
+    expect(wrapper.find('a[href="/tools"]').exists()).toBe(true)
+    expect(wrapper.find('a[href="/tools/mcp-servers"]').exists()).toBe(true)
+    expect(wrapper.find('a[href="/tools/invocation-logs"]').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('hides each tool entry without its read permission', async () => {
+    const wrapper = await mountSidebar(['tool:read'])
+
+    expect(wrapper.find('a[href="/tools"]').exists()).toBe(true)
+    expect(wrapper.find('a[href="/tools/mcp-servers"]').exists()).toBe(false)
+    expect(wrapper.find('a[href="/tools/invocation-logs"]').exists()).toBe(false)
 
     wrapper.unmount()
   })

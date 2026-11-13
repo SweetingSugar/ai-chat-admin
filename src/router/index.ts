@@ -14,6 +14,9 @@ import RoleManagementView from '@/views/system/RoleManagementView.vue'
 import PermissionManagementView from '@/views/system/PermissionManagementView.vue'
 import FileManagementView from '@/views/system/FileManagementView.vue'
 import KnowledgeBaseManagementView from '@/views/system/KnowledgeBaseManagementView.vue'
+import ToolManagementView from '@/views/tool/ToolManagementView.vue'
+import McpServerManagementView from '@/views/tool/McpServerManagementView.vue'
+import ToolInvocationLogView from '@/views/tool/ToolInvocationLogView.vue'
 import AiConfigLayout from '@/layouts/AiConfigLayout.vue'
 import ProviderManagementView from '@/views/ai/ProviderManagementView.vue'
 import ModelManagementView from '@/views/ai/ModelManagementView.vue'
@@ -57,6 +60,21 @@ export const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'knowledge:read', title: '知识库管理' },
       },
       {
+        path: 'tools',
+        component: ToolManagementView,
+        meta: { requiresAuth: true, permission: 'tool:read', title: '工具管理' },
+      },
+      {
+        path: 'tools/mcp-servers',
+        component: McpServerManagementView,
+        meta: { requiresAuth: true, permission: 'tool:mcp-server:read', title: 'MCP Server' },
+      },
+      {
+        path: 'tools/invocation-logs',
+        component: ToolInvocationLogView,
+        meta: { requiresAuth: true, permission: 'tool:invocation:read', title: '调用日志' },
+      },
+      {
         path: 'ai',
         component: AiConfigLayout,
         meta: { requiresAuth: true, title: 'AI 配置' },
@@ -90,6 +108,9 @@ const accessibleEntries = [
   ['/system/permissions', 'system:permission:read'],
   ['/system/files', 'file:read'],
   ['/system/knowledge-bases', 'knowledge:read'],
+  ['/tools', 'tool:read'],
+  ['/tools/mcp-servers', 'tool:mcp-server:read'],
+  ['/tools/invocation-logs', 'tool:invocation:read'],
   ['/ai/providers', 'ai:provider:read'],
   ['/ai/models', 'ai:model:read'],
 ] as const

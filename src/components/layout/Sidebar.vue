@@ -29,6 +29,14 @@ const navigationGroups = [
       { label: '模型管理', path: '/ai/models', permission: 'ai:model:read' },
     ],
   },
+  {
+    label: '工具管理',
+    items: [
+      { label: '工具管理', path: '/tools', permission: 'tool:read' },
+      { label: 'MCP Server', path: '/tools/mcp-servers', permission: 'tool:mcp-server:read' },
+      { label: '调用日志', path: '/tools/invocation-logs', permission: 'tool:invocation:read' },
+    ],
+  },
   { label: '数据分析', items: [] },
 ]
 

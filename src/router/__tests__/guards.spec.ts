@@ -120,3 +120,31 @@ it('allows a user with only knowledge-read permission to enter knowledge-base ma
 
   expect(router.currentRoute.value.fullPath).toBe('/system/knowledge-bases')
 })
+
+it('chooses tool management when tool-read is the first available entry', () => {
+  expect(getFirstAccessiblePath(['tool:read'])).toBe('/tools')
+})
+
+it('allows a user with tool-read permission to enter tool management', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['tool:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/tools')
+
+  expect(router.currentRoute.value.fullPath).toBe('/tools')
+})
+
+it('redirects a user without MCP Server permission to forbidden', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['tool:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/tools/mcp-servers')
+
+  expect(router.currentRoute.value.fullPath).toBe('/forbidden')
+})
