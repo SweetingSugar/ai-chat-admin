@@ -17,6 +17,7 @@ import KnowledgeBaseManagementView from '@/views/system/KnowledgeBaseManagementV
 import ToolManagementView from '@/views/tool/ToolManagementView.vue'
 import McpServerManagementView from '@/views/tool/McpServerManagementView.vue'
 import ToolInvocationLogView from '@/views/tool/ToolInvocationLogView.vue'
+import AgentManagementView from '@/views/AgentManagementView.vue'
 import AiConfigLayout from '@/layouts/AiConfigLayout.vue'
 import ProviderManagementView from '@/views/ai/ProviderManagementView.vue'
 import ModelManagementView from '@/views/ai/ModelManagementView.vue'
@@ -75,6 +76,11 @@ export const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true, permission: 'tool:invocation:read', title: '调用日志' },
       },
       {
+        path: 'agents',
+        component: AgentManagementView,
+        meta: { requiresAuth: true, permission: 'agent:read', title: 'Agent 管理' },
+      },
+      {
         path: 'ai',
         component: AiConfigLayout,
         meta: { requiresAuth: true, title: 'AI 配置' },
@@ -111,6 +117,7 @@ const accessibleEntries = [
   ['/tools', 'tool:read'],
   ['/tools/mcp-servers', 'tool:mcp-server:read'],
   ['/tools/invocation-logs', 'tool:invocation:read'],
+  ['/agents', 'agent:read'],
   ['/ai/providers', 'ai:provider:read'],
   ['/ai/models', 'ai:model:read'],
 ] as const

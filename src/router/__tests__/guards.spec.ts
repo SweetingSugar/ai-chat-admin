@@ -148,3 +148,31 @@ it('redirects a user without MCP Server permission to forbidden', async () => {
 
   expect(router.currentRoute.value.fullPath).toBe('/forbidden')
 })
+
+it('chooses agent management when agent-read is the first available entry', () => {
+  expect(getFirstAccessiblePath(['agent:read'])).toBe('/agents')
+})
+
+it('allows a user with only agent-read permission to enter agent management', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: ['agent:read'] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/agents')
+
+  expect(router.currentRoute.value.fullPath).toBe('/agents')
+})
+
+it('redirects an authenticated user without agent-read permission to forbidden', async () => {
+  const auth = useAuthStore()
+  auth.token = { tokenName: 'x-auth', tokenValue: 'secret' }
+  auth.user = { ...user, permissionCodes: [] }
+  auth.initialized = true
+  const router = createAppRouter(createMemoryHistory())
+
+  await router.push('/agents')
+
+  expect(router.currentRoute.value.fullPath).toBe('/forbidden')
+})
