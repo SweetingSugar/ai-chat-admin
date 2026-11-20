@@ -27,6 +27,7 @@ const navigationGroups = [
     items: [
       { label: '供应商管理', path: '/ai/providers', permission: 'ai:provider:read' },
       { label: '模型管理', path: '/ai/models', permission: 'ai:model:read' },
+      { label: 'Agent 管理', path: '/agents', permission: 'agent:read' },
     ],
   },
   {

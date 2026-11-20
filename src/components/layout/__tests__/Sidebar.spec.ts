@@ -19,6 +19,7 @@ const routes = [
   { path: '/tools', component: routeComponent },
   { path: '/tools/mcp-servers', component: routeComponent },
   { path: '/tools/invocation-logs', component: routeComponent },
+  { path: '/agents', component: routeComponent },
 ]
 const permissionCodes = [
   'admin:dashboard:read',
@@ -138,6 +139,25 @@ describe('Sidebar', () => {
     expect(wrapper.find('a[href="/tools"]').exists()).toBe(true)
     expect(wrapper.find('a[href="/tools/mcp-servers"]').exists()).toBe(false)
     expect(wrapper.find('a[href="/tools/invocation-logs"]').exists()).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('shows Agent management with agent-read permission', async () => {
+    const wrapper = await mountSidebar(['agent:read'])
+
+    expect(wrapper.text()).toContain('Agent 管理')
+    expect(wrapper.get('a[href="/agents"]')).toBeTruthy()
+    expect(wrapper.findAll('.nav-item')).toHaveLength(8)
+
+    wrapper.unmount()
+  })
+
+  it('hides Agent management without agent-read permission', async () => {
+    const wrapper = await mountSidebar()
+
+    expect(wrapper.text()).not.toContain('Agent 管理')
+    expect(wrapper.find('a[href="/agents"]').exists()).toBe(false)
 
     wrapper.unmount()
   })
